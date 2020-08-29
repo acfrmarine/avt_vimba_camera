@@ -43,7 +43,7 @@
 #include <camera_info_manager/camera_info_manager.h>
 #include <image_transport/image_transport.h>
 #include <dynamic_reconfigure/server.h>
-
+#include <std_msgs/Float64.h>
 #include <string>
 
 namespace avt_vimba_camera {
@@ -70,6 +70,8 @@ class MonoCamera {
   image_transport::ImageTransport it_;
   // ROS Camera publisher
   image_transport::CameraPublisher pub_;
+
+  ros::Publisher pub_temp_;
 
 
 

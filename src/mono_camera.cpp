@@ -49,6 +49,10 @@ MonoCamera::MonoCamera(ros::NodeHandle& nh, ros::NodeHandle& nhp) : nh_(nh), nhp
   // Set the frame callback
   cam_.setCallback(boost::bind(&avt_vimba_camera::MonoCamera::frameCallback, this, _1));
 
+  // Create the temperature publisher
+  pub_temp_ = nhp_.advertise<std_msgs::Float64>("temp", 1, true);
+
+
   // Set the params
   nhp_.param("ip", ip_, std::string(""));
   nhp_.param("guid", guid_, std::string(""));
@@ -82,6 +86,15 @@ void MonoCamera::frameCallback(const FramePtr& vimba_frame_ptr) {
       ROS_WARN_STREAM("Function frameToImage returned 0. No image published.");
     }
   }
+
+  
+  // Publish temp
+  if (pub_temp_.getNumSubscribers() > 0) {
+    std_msgs::Float64 msg;
+    msg.data = cam_.getDeviceTemp();
+    pub_temp_.publish(msg);
+  }
+
   // updater_.update();
 }
 
