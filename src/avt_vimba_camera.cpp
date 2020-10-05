@@ -365,7 +365,9 @@ CameraPtr AvtVimbaCamera::openCamera(std::string id_str) {
 
   ros::Duration(2.0).sleep();
 
-  printAllCameraFeatures(camera);
+
+
+    printAllCameraFeatures(camera);
   opened_ = true;
   camera_state_ = IDLE;
   return camera;
@@ -935,7 +937,9 @@ void AvtVimbaCamera::updateExposureConfig(Config& config) {
     setFeatureValue("ExposureAutoTarget",
                     static_cast<VmbInt64_t>(config.exposure_auto_target));
   }
-  if(changed && show_debug_prints_){
+  setFeatureValue("ChunkModeActive", 1);
+
+        if(changed && show_debug_prints_){
     ROS_INFO_STREAM("New Exposure config (" << config.frame_id << ") : "
       << "\n\tExposureTimeAbs       : " << config.exposure               << " was " << config_.exposure
       << "\n\tExposureAuto          : " << config.exposure_auto          << " was " << config_.exposure_auto
@@ -946,6 +950,14 @@ void AvtVimbaCamera::updateExposureConfig(Config& config) {
       << "\n\tExposureAutoRate      : " << config.exposure_auto_rate     << " was " << config_.exposure_auto_rate
       << "\n\tExposureAutoTarget    : " << config.exposure_auto_target   << " was " << config_.exposure_auto_target);
   }
+        bool chunk_mode_active = false;
+        getFeatureValue("ChunkModeActive", chunk_mode_active);
+        if (chunk_mode_active) {
+            ROS_INFO_STREAM("\n\t CHUNK MODE ACTIVE TRUE\n");
+        }
+        else{
+            ROS_INFO_STREAM("\n\t CHUNK MODE ACTIVE TRUE\n");
+        }
 }
 
 /** Change the Gain configuration */

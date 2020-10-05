@@ -77,6 +77,40 @@ void MonoCamera::frameCallback(const FramePtr& vimba_frame_ptr) {
   ros::Time ros_time = ros::Time::now();
   if (pub_.getNumSubscribers() > 0) {
     sensor_msgs::Image img;
+    VmbUint64_t camera_clock;
+    vimba_frame_ptr->GetTimestamp(camera_clock);
+    ROS_INFO_STREAM("CLOCK: " << long(camera_clock));
+//    bool get_ancillary_data = true;
+    /*
+    if (get_ancillary_data){
+        AncillaryDataPtr ancillary_data_ptr;
+        VmbErrorType anc_res;
+        anc_res = ancillary_data_ptr->Open();
+        if (anc_res == VmbErrorSuccess) {
+            vimba_frame_ptr->GetAncillaryData(ancillary_data_ptr);
+
+            VmbUchar_t *ancillary;
+            ancillary_data_ptr->GetBuffer(ancillary);
+//        unsigned int exposure = ((ancillary[8] & 0xFF) << 24) * ((ancillary[9] & 0xFF) << 16) + ((ancillary[10] & 0xFF) << 8) + (ancillary[11] & 0xFF);
+//        unsigned int gain = ((ancillary[12] & 0xFF) << 24) * ((ancillary[13] & 0xFF) << 16) + ((ancillary[14] & 0xFF) << 8) + (ancillary[15] & 0xFF);
+//        ROS_INFO("Exp: %u, Gain: %u", exposure, gain);
+            ancillary_data_ptr->Close();
+
+        }
+    }
+
+    if (get_ancillary_data){
+        VmbUint32_t image_size;
+        vimba_frame_ptr->GetImageSize(image_size);
+        char *ancillary = &frame_buffer[image_size + 8];
+
+        unsigned int exposure = ((ancillary[8] & 0xFF) << 24) * ((ancillary[9] & 0xFF) << 16) + ((ancillary[10] & 0xFF) << 8) + (ancillary[11] & 0xFF);
+        unsigned int gain = ((ancillary[12] & 0xFF) << 24) * ((ancillary[13] & 0xFF) << 16) + ((ancillary[14] & 0xFF) << 8) + (ancillary[15] & 0xFF);
+        ROS_INFO("Exp: %u, Gain: %u", exposure, gain);
+
+    }
+     */
+
     if (api_.frameToImage(vimba_frame_ptr, img)) {
       sensor_msgs::CameraInfo ci = info_man_->getCameraInfo();
       ci.header.stamp = img.header.stamp = ros_time;

@@ -151,6 +151,49 @@ class AvtVimbaApi {
 
     VmbUchar_t *buffer_ptr;
     VmbErrorType err = vimba_frame_ptr->GetImage(buffer_ptr);
+    bool do_shift = false;
+      // Shift the buffer here
+        // shift the 12 bit data to the top of the 16 bit word
+        if (do_shift) {
+            if ((pixel_format & VmbPixelFormatBayerGR12) || (pixel_format & VmbPixelFormatBayerRG12) ||
+                (pixel_format & VmbPixelFormatBayerBG12) ||
+                (pixel_format & VmbPixelFormatBayerGB12) || (pixel_format & VmbPixelFormatMono12) ||
+                (pixel_format & VmbPixelFormatBayerGR10) || (pixel_format & VmbPixelFormatBayerRG10) ||
+                (pixel_format & VmbPixelFormatBayerBG10) ||
+                (pixel_format & VmbPixelFormatBayerGB10) || (pixel_format & VmbPixelFormatMono10)) {
+                for (int x = 0; x < step * height; x += 2) {
+                    unsigned short *d = (unsigned short *) &buffer_ptr[x];
+                    *d = *d << 4;
+                }
+                if (pixel_format & VmbPixelFormatBayerRG12) {
+                    encoding = sensor_msgs::image_encodings::BAYER_RGGB16;
+                }
+            }
+        }
+
+      VmbUchar_t *ancillary = &buffer_ptr[nSize + 8];
+      unsigned int exposure = ((ancillary[8] & 0xFF) << 24) * ((ancillary[9] & 0xFF) << 16) + ((ancillary[10] & 0xFF) << 8) + (ancillary[11] & 0xFF);
+      unsigned int gain = ((ancillary[12] & 0xFF) << 24) * ((ancillary[13] & 0xFF) << 16) + ((ancillary[14] & 0xFF) << 8) + (ancillary[15] & 0xFF);
+      ROS_INFO_STREAM("Exp: " << exposure << " Gain: " << gain);
+//      bool get_ancillary_data = true;
+//      if (get_ancillary_data){
+//          AncillaryDataPtr ancillary_data_ptr;
+//          VmbErrorType anc_res;
+//          anc_res = ancillary_data_ptr->Open();
+//          if (anc_res == VmbErrorSuccess) {
+//              vimba_frame_ptr->GetAncillaryData(ancillary_data_ptr);
+//
+//              VmbUchar_t *ancillary;
+//              ancillary_data_ptr->GetBuffer(ancillary);
+//        unsigned int exposure = ((ancillary[8] & 0xFF) << 24) * ((ancillary[9] & 0xFF) << 16) + ((ancillary[10] & 0xFF) << 8) + (ancillary[11] & 0xFF);
+//        unsigned int gain = ((ancillary[12] & 0xFF) << 24) * ((ancillary[13] & 0xFF) << 16) + ((ancillary[14] & 0xFF) << 8) + (ancillary[15] & 0xFF);
+//        ROS_INFO("Exp: %u, Gain: %u", exposure, gain);
+//              ancillary_data_ptr->Close();
+//
+//          }
+//      }
+
+
     bool res = false;
     if ( VmbErrorSuccess == err ) {
       res = sensor_msgs::fillImage(image,
