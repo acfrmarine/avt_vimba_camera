@@ -57,6 +57,9 @@
 #include <string>
 #include <boost/thread/mutex.hpp>
 
+#include "avt_vimba_camera/ImageParameters.h"
+
+
 using namespace boost;
 
 namespace avt_vimba_camera {
@@ -75,8 +78,10 @@ class StereoCamera {
   diagnostic_updater::TopicDiagnostic* pub_freq_;
   diagnostic_updater::FunctionDiagnosticTask* sync_check_;
   bool show_debug_prints_;
+  bool do_shift_;
 
-  // Parameters
+
+    // Parameters
   std::string left_ip_;
   std::string right_ip_;
   std::string left_guid_;
@@ -101,7 +106,11 @@ class StereoCamera {
   ros::Publisher pub_left_temp_;
   ros::Publisher pub_right_temp_;
 
-  boost::shared_ptr<camera_info_manager::CameraInfoManager> left_info_man_;
+  ros::Publisher pub_params_left_;
+  ros::Publisher pub_params_right_;
+
+
+    boost::shared_ptr<camera_info_manager::CameraInfoManager> left_info_man_;
   boost::shared_ptr<camera_info_manager::CameraInfoManager> right_info_man_;
 
   // Dynamic reconfigure

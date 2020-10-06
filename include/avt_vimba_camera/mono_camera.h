@@ -45,6 +45,7 @@
 #include <dynamic_reconfigure/server.h>
 #include <std_msgs/Float64.h>
 #include <string>
+#include "avt_vimba_camera/ImageParameters.h"
 
 namespace avt_vimba_camera {
 class MonoCamera {
@@ -66,12 +67,14 @@ class MonoCamera {
   std::string guid_;
   std::string camera_info_url_;
   bool show_debug_prints_;
+  bool do_shift_;
 
   image_transport::ImageTransport it_;
   // ROS Camera publisher
   image_transport::CameraPublisher pub_;
 
   ros::Publisher pub_temp_;
+  ros::Publisher pub_params_;
 
 
 

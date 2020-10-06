@@ -41,6 +41,8 @@
 #include <sensor_msgs/image_encodings.h>
 #include <sensor_msgs/fill_image.h>
 
+#include "avt_vimba_camera/ImageParameters.h"
+
 #include <string>
 #include <map>
 
@@ -100,7 +102,7 @@ class AvtVimbaApi {
     return "Unsupported error code passed.";
   }
 
-  bool frameToImage(const FramePtr vimba_frame_ptr, sensor_msgs::Image& image) {
+  bool frameToImage(const FramePtr vimba_frame_ptr, sensor_msgs::Image& image, bool do_shift) {
     VmbPixelFormatType pixel_format;
     VmbUint32_t width, height, nSize;
 
@@ -151,7 +153,7 @@ class AvtVimbaApi {
 
     VmbUchar_t *buffer_ptr;
     VmbErrorType err = vimba_frame_ptr->GetImage(buffer_ptr);
-    bool do_shift = false;
+
       // Shift the buffer here
         // shift the 12 bit data to the top of the 16 bit word
         if (do_shift) {
@@ -171,29 +173,6 @@ class AvtVimbaApi {
             }
         }
 
-      VmbUchar_t *ancillary = &buffer_ptr[nSize + 8];
-      unsigned int exposure = ((ancillary[8] & 0xFF) << 24) * ((ancillary[9] & 0xFF) << 16) + ((ancillary[10] & 0xFF) << 8) + (ancillary[11] & 0xFF);
-      unsigned int gain = ((ancillary[12] & 0xFF) << 24) * ((ancillary[13] & 0xFF) << 16) + ((ancillary[14] & 0xFF) << 8) + (ancillary[15] & 0xFF);
-      ROS_INFO_STREAM("Exp: " << exposure << " Gain: " << gain);
-//      bool get_ancillary_data = true;
-//      if (get_ancillary_data){
-//          AncillaryDataPtr ancillary_data_ptr;
-//          VmbErrorType anc_res;
-//          anc_res = ancillary_data_ptr->Open();
-//          if (anc_res == VmbErrorSuccess) {
-//              vimba_frame_ptr->GetAncillaryData(ancillary_data_ptr);
-//
-//              VmbUchar_t *ancillary;
-//              ancillary_data_ptr->GetBuffer(ancillary);
-//        unsigned int exposure = ((ancillary[8] & 0xFF) << 24) * ((ancillary[9] & 0xFF) << 16) + ((ancillary[10] & 0xFF) << 8) + (ancillary[11] & 0xFF);
-//        unsigned int gain = ((ancillary[12] & 0xFF) << 24) * ((ancillary[13] & 0xFF) << 16) + ((ancillary[14] & 0xFF) << 8) + (ancillary[15] & 0xFF);
-//        ROS_INFO("Exp: %u, Gain: %u", exposure, gain);
-//              ancillary_data_ptr->Close();
-//
-//          }
-//      }
-
-
     bool res = false;
     if ( VmbErrorSuccess == err ) {
       res = sensor_msgs::fillImage(image,
@@ -208,6 +187,21 @@ class AvtVimbaApi {
         << "\n Error: " << errorCodeToMessage(err));
     }
     return res;
+  }
+
+  bool getAncillaryData(const FramePtr vimba_frame_ptr, avt_vimba_camera::ImageParameters& image_params)
+  {
+      VmbUint32_t nSize;
+      vimba_frame_ptr->GetImageSize(nSize);
+      VmbUchar_t *buffer_ptr;
+      VmbErrorType err = vimba_frame_ptr->GetImage(buffer_ptr);
+      VmbUchar_t *ancillary = &buffer_ptr[nSize + 8];
+      unsigned int exposure = ((ancillary[8] & 0xFF) << 24) * ((ancillary[9] & 0xFF) << 16) + ((ancillary[10] & 0xFF) << 8) + (ancillary[11] & 0xFF);
+      unsigned int gain = ((ancillary[12] & 0xFF) << 24) * ((ancillary[13] & 0xFF) << 16) + ((ancillary[14] & 0xFF) << 8) + (ancillary[15] & 0xFF);
+//      ROS_INFO_STREAM("Exp: " << exposure << " Gain: " << gain);
+      image_params.shutter_ms = float(exposure)/1000.0;
+      image_params.gain_db = float(gain) / 10.0;
+      return true;
   }
 
  private:

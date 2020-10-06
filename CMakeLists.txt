@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   polled_camera
   nodelet
+  message_generation
 )
 
 #Get architecture
@@ -21,15 +22,25 @@ set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(TargetArchitecture)
 target_architecture(ARCH)
 
+add_message_files(FILES
+        ImageParameters.msg
+        )
+
+
+generate_messages(DEPENDENCIES
+        std_msgs
+        )
+
 #add dynamic reconfigure api
 generate_dynamic_reconfigure_options(
   cfg/AvtVimbaCamera.cfg
   cfg/AvtVimbaCameraStereo.cfg
 )
 
+
 catkin_package(
   INCLUDE_DIRS include
-  CATKIN_DEPENDS camera_info_manager diagnostic_updater dynamic_reconfigure image_geometry image_transport roscpp sensor_msgs std_msgs polled_camera
+  CATKIN_DEPENDS camera_info_manager diagnostic_updater dynamic_reconfigure image_geometry image_transport roscpp sensor_msgs std_msgs polled_camera message_runtime
 )
 
 ###########

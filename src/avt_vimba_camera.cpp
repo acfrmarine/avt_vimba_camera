@@ -937,7 +937,9 @@ void AvtVimbaCamera::updateExposureConfig(Config& config) {
     setFeatureValue("ExposureAutoTarget",
                     static_cast<VmbInt64_t>(config.exposure_auto_target));
   }
-  setFeatureValue("ChunkModeActive", 1);
+  setFeatureValue("ChunkModeActive", true);
+
+
 
         if(changed && show_debug_prints_){
     ROS_INFO_STREAM("New Exposure config (" << config.frame_id << ") : "
@@ -956,7 +958,7 @@ void AvtVimbaCamera::updateExposureConfig(Config& config) {
             ROS_INFO_STREAM("\n\t CHUNK MODE ACTIVE TRUE\n");
         }
         else{
-            ROS_INFO_STREAM("\n\t CHUNK MODE ACTIVE TRUE\n");
+            ROS_INFO_STREAM("\n\t CHUNK MODE ACTIVE FALSE\n");
         }
 }
 

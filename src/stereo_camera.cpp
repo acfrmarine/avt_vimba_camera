@@ -47,6 +47,8 @@ StereoCamera::StereoCamera(ros::NodeHandle nh, ros::NodeHandle nhp)
   nhp_.param("show_debug_prints", show_debug_prints_, false);
   nhp_.param("imgs_buffer_size", imgs_buffer_size_, 2);
   nhp_.param("max_sec_diff", max_sec_diff_, 0.05);
+  nhp_.param("do_shift", do_shift_, false);
+
 }
 
 StereoCamera::~StereoCamera() {
@@ -89,6 +91,11 @@ void StereoCamera::run() {
   pub_left_temp_ = nhp_.advertise<std_msgs::Float64>("left_temp", 1, true);
   pub_right_temp_ = nhp_.advertise<std_msgs::Float64>("right_temp", 1, true);
 
+    pub_params_left_ = nhp_.advertise<std_msgs::Float64>("left_params", 1, true);
+    pub_params_right_ = nhp_.advertise<std_msgs::Float64>("right_params", 1, true);
+
+
+
   // Start dynamic_reconfigure & run configure()
   reconfigure_server_.setCallback(boost::bind(&StereoCamera::configure, this, _1, _2));
 
@@ -98,7 +105,7 @@ void StereoCamera::leftFrameCallback(const FramePtr& vimba_frame_ptr) {
   ros::Time ros_time = ros::Time::now();
   if(left_pub_.getNumSubscribers() > 0){
     sensor_msgs::Image img;
-    if (api_.frameToImage(vimba_frame_ptr, img)){
+    if (api_.frameToImage(vimba_frame_ptr, img, do_shift_)){
       // Publish
       sensor_msgs::CameraInfo lci = left_info_man_->getCameraInfo();
       lci.header.stamp = ros_time;
@@ -145,6 +152,12 @@ void StereoCamera::leftFrameCallback(const FramePtr& vimba_frame_ptr) {
           l_imgs_buffer_.push_back(img);
         }
       }
+        // Only get ancillary data if frame is valid.
+        avt_vimba_camera::ImageParameters image_params;
+        api_.getAncillaryData(vimba_frame_ptr, image_params);
+        image_params.time_reference = "host";
+        image_params.stamp = img.header.stamp;
+        pub_params_left_.publish(image_params);
     }
     else {
       ROS_WARN_STREAM("Function frameToImage returned 0. No image published.");
@@ -165,7 +178,7 @@ void StereoCamera::rightFrameCallback(const FramePtr& vimba_frame_ptr) {
   ros::Time ros_time = ros::Time::now();
   if(right_pub_.getNumSubscribers() > 0){
     sensor_msgs::Image img;
-    if (api_.frameToImage(vimba_frame_ptr, img)){
+    if (api_.frameToImage(vimba_frame_ptr, img, do_shift_)){
       // Publish
       sensor_msgs::CameraInfo rci = right_info_man_->getCameraInfo();
       rci.header.stamp = ros_time;
@@ -214,6 +227,12 @@ void StereoCamera::rightFrameCallback(const FramePtr& vimba_frame_ptr) {
           r_imgs_buffer_.push_back(img);
         }
       }
+        // Only get ancillary data if frame is valid.
+        avt_vimba_camera::ImageParameters image_params;
+        api_.getAncillaryData(vimba_frame_ptr, image_params);
+        image_params.time_reference = "host";
+        image_params.stamp = img.header.stamp;
+        pub_params_right_.publish(image_params);
     }
     else {
       ROS_WARN_STREAM("Function frameToImage returned 0. No image published.");

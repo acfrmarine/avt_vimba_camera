@@ -51,7 +51,7 @@ MonoCamera::MonoCamera(ros::NodeHandle& nh, ros::NodeHandle& nhp) : nh_(nh), nhp
 
   // Create the temperature publisher
   pub_temp_ = nhp_.advertise<std_msgs::Float64>("temp", 1, true);
-
+  pub_params_ = nhp_.advertise<avt_vimba_camera::ImageParameters>("params", 1, true);
 
   // Set the params
   nhp_.param("ip", ip_, std::string(""));
@@ -60,6 +60,7 @@ MonoCamera::MonoCamera(ros::NodeHandle& nh, ros::NodeHandle& nhp) : nh_(nh), nhp
   std::string frame_id;
   nhp_.param("frame_id", frame_id, std::string(""));
   nhp_.param("show_debug_prints", show_debug_prints_, false);
+  nhp_.param("do_shift", do_shift_, false);
 
   // Set camera info manager
   info_man_  = boost::shared_ptr<camera_info_manager::CameraInfoManager>(new camera_info_manager::CameraInfoManager(nhp_, frame_id, camera_info_url_));
@@ -80,42 +81,21 @@ void MonoCamera::frameCallback(const FramePtr& vimba_frame_ptr) {
     VmbUint64_t camera_clock;
     vimba_frame_ptr->GetTimestamp(camera_clock);
     ROS_INFO_STREAM("CLOCK: " << long(camera_clock));
-//    bool get_ancillary_data = true;
-    /*
-    if (get_ancillary_data){
-        AncillaryDataPtr ancillary_data_ptr;
-        VmbErrorType anc_res;
-        anc_res = ancillary_data_ptr->Open();
-        if (anc_res == VmbErrorSuccess) {
-            vimba_frame_ptr->GetAncillaryData(ancillary_data_ptr);
 
-            VmbUchar_t *ancillary;
-            ancillary_data_ptr->GetBuffer(ancillary);
-//        unsigned int exposure = ((ancillary[8] & 0xFF) << 24) * ((ancillary[9] & 0xFF) << 16) + ((ancillary[10] & 0xFF) << 8) + (ancillary[11] & 0xFF);
-//        unsigned int gain = ((ancillary[12] & 0xFF) << 24) * ((ancillary[13] & 0xFF) << 16) + ((ancillary[14] & 0xFF) << 8) + (ancillary[15] & 0xFF);
-//        ROS_INFO("Exp: %u, Gain: %u", exposure, gain);
-            ancillary_data_ptr->Close();
-
-        }
-    }
-
-    if (get_ancillary_data){
-        VmbUint32_t image_size;
-        vimba_frame_ptr->GetImageSize(image_size);
-        char *ancillary = &frame_buffer[image_size + 8];
-
-        unsigned int exposure = ((ancillary[8] & 0xFF) << 24) * ((ancillary[9] & 0xFF) << 16) + ((ancillary[10] & 0xFF) << 8) + (ancillary[11] & 0xFF);
-        unsigned int gain = ((ancillary[12] & 0xFF) << 24) * ((ancillary[13] & 0xFF) << 16) + ((ancillary[14] & 0xFF) << 8) + (ancillary[15] & 0xFF);
-        ROS_INFO("Exp: %u, Gain: %u", exposure, gain);
-
-    }
-     */
-
-    if (api_.frameToImage(vimba_frame_ptr, img)) {
+    if (api_.frameToImage(vimba_frame_ptr, img, do_shift_)) {
       sensor_msgs::CameraInfo ci = info_man_->getCameraInfo();
       ci.header.stamp = img.header.stamp = ros_time;
       img.header.frame_id = ci.header.frame_id;
       pub_.publish(img, ci);
+
+      // Only get ancillary data if frame is valid.
+      avt_vimba_camera::ImageParameters image_params;
+      api_.getAncillaryData(vimba_frame_ptr, image_params);
+      image_params.time_reference = "host";
+      image_params.stamp = img.header.stamp;
+      pub_params_.publish(image_params);
+
+
     } else {
       ROS_WARN_STREAM("Function frameToImage returned 0. No image published.");
     }
