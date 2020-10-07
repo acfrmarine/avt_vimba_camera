@@ -46,6 +46,7 @@
 #include <string>
 #include <map>
 
+
 using AVT::VmbAPI::VimbaSystem;
 using AVT::VmbAPI::CameraPtr;
 using AVT::VmbAPI::FramePtr;
@@ -163,13 +164,27 @@ class AvtVimbaApi {
                 (pixel_format & VmbPixelFormatBayerGR10) || (pixel_format & VmbPixelFormatBayerRG10) ||
                 (pixel_format & VmbPixelFormatBayerBG10) ||
                 (pixel_format & VmbPixelFormatBayerGB10) || (pixel_format & VmbPixelFormatMono10)) {
-                for (int x = 0; x < step * height; x += 2) {
-                    unsigned short *d = (unsigned short *) &buffer_ptr[x];
+//                unsigned short *d;
+//                ros::Time t0 = ros::Time::now();
+//                for (int x = 0; x < step * height; x += 2) {
+//                    unsigned short *d = (unsigned short *) &buffer_ptr[x];
+//                    d = (unsigned short *) &buffer_ptr[x];
+//                    *d = *d << 4;
+//                        buffer_ptr[x] = buffer_ptr[x] << 4 | (buffer_ptr[x+1] >> 4);
+//                        buffer_ptr[x+1] = buffer_ptr[x+1] << 4;
+//
+//                }
+                unsigned long *d;
+                for (int x = 0; x < step * height; x += 8) {
+                    d = (unsigned long *) &buffer_ptr[x];
                     *d = *d << 4;
                 }
                 if (pixel_format & VmbPixelFormatBayerRG12) {
                     encoding = sensor_msgs::image_encodings::BAYER_RGGB16;
                 }
+//                ros::Time t1 = ros::Time::now();
+//                ros::Duration diff = t1 - t0;
+//                std::cout << "Shifting: " << diff << std::endl;
             }
         }
 

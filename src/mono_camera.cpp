@@ -80,7 +80,7 @@ void MonoCamera::frameCallback(const FramePtr& vimba_frame_ptr) {
     sensor_msgs::Image img;
     VmbUint64_t camera_clock;
     vimba_frame_ptr->GetTimestamp(camera_clock);
-    ROS_INFO_STREAM("CLOCK: " << long(camera_clock));
+//    ROS_INFO_STREAM("CLOCK: " << long(camera_clock));
 
     if (api_.frameToImage(vimba_frame_ptr, img, do_shift_)) {
       sensor_msgs::CameraInfo ci = info_man_->getCameraInfo();
