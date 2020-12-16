@@ -46,6 +46,7 @@
 #include <std_msgs/Float64.h>
 #include <string>
 #include "avt_vimba_camera/ImageParameters.h"
+#include <std_srvs/Trigger.h>
 
 namespace avt_vimba_camera {
 class MonoCamera {
@@ -68,6 +69,7 @@ class MonoCamera {
   std::string camera_info_url_;
   bool show_debug_prints_;
   bool do_shift_;
+  bool imaging_enabled_;
 
   image_transport::ImageTransport it_;
   // ROS Camera publisher
@@ -93,7 +95,8 @@ class MonoCamera {
   void frameCallback(const FramePtr& vimba_frame_ptr);
   void configure(Config& newconfig, uint32_t level);
   void updateCameraInfo(const Config& config);
-  bool startServiceCallback(std_srvs::SetThrusterCommand::Request &req, float_control::SetThrusterCommand::Response &res)
+  bool enableCallback(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res);
+  bool disableCallback(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res);
 };
 }
 #endif

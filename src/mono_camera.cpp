@@ -62,9 +62,9 @@ MonoCamera::MonoCamera(ros::NodeHandle& nh, ros::NodeHandle& nhp) : nh_(nh), nhp
   nhp_.param("show_debug_prints", show_debug_prints_, false);
   nhp_.param("do_shift", do_shift_, false);
   // Startup enabled
-  nhp_.param("start_enabled", start_enabled_, true);
-  ros::ServiceServer startService_ = nh_.advertiseService("start_imaging", &Controller::enableCallback, this);
-  ros::ServiceServer stopService_ = nh_.advertiseService("stop_imaging", &Controller::disableCallback, this);
+  nhp_.param("start_enabled", imaging_enabled_, true);
+  ros::ServiceServer startService_ = nh_.advertiseService("start_imaging", &avt_vimba_camera::MonoCamera::enableCallback, this);
+  ros::ServiceServer stopService_ = nh_.advertiseService("stop_imaging", &avt_vimba_camera::MonoCamera::disableCallback, this);
 
 
   // Set camera info manager
@@ -81,7 +81,7 @@ MonoCamera::~MonoCamera(void) {
 
 void MonoCamera::frameCallback(const FramePtr& vimba_frame_ptr) {
   ros::Time ros_time = ros::Time::now();
-  if (pub_.getNumSubscribers() > 0) {
+  if (pub_.getNumSubscribers() > 0 && imaging_enabled_) {
     sensor_msgs::Image img;
     VmbUint64_t camera_clock;
     vimba_frame_ptr->GetTimestamp(camera_clock);
@@ -106,7 +106,7 @@ void MonoCamera::frameCallback(const FramePtr& vimba_frame_ptr) {
     }
   }
 
-  
+
   // Publish temp
   if (pub_temp_.getNumSubscribers() > 0) {
     std_msgs::Float64 msg;
@@ -192,6 +192,18 @@ void MonoCamera::updateCameraInfo(const avt_vimba_camera::AvtVimbaCameraConfig& 
 
   // push the changes to manager
   info_man_->setCameraInfo(ci);
+}
+bool MonoCamera::enableCallback(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res)
+{
+    imaging_enabled_ = true;
+    res.success = true;
+    res.message = "Imaging enabled";
+}
+bool MonoCamera::disableCallback(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res)
+{
+    imaging_enabled_ = false;
+    res.success = true;
+    res.message = "Imaging disabled";
 }
 
 };
