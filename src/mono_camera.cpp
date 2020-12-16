@@ -63,8 +63,8 @@ MonoCamera::MonoCamera(ros::NodeHandle& nh, ros::NodeHandle& nhp) : nh_(nh), nhp
   nhp_.param("do_shift", do_shift_, false);
   // Startup enabled
   nhp_.param("start_enabled", imaging_enabled_, true);
-  ros::ServiceServer startService_ = nh_.advertiseService("start_imaging", &avt_vimba_camera::MonoCamera::enableCallback, this);
-  ros::ServiceServer stopService_ = nh_.advertiseService("stop_imaging", &avt_vimba_camera::MonoCamera::disableCallback, this);
+  ros::ServiceServer startService_ = nh_.advertiseService("/start_imaging", &MonoCamera::enableCallback, this);
+  ros::ServiceServer stopService_ = nh_.advertiseService("/stop_imaging", &MonoCamera::disableCallback, this);
 
 
   // Set camera info manager
