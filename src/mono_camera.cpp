@@ -61,6 +61,11 @@ MonoCamera::MonoCamera(ros::NodeHandle& nh, ros::NodeHandle& nhp) : nh_(nh), nhp
   nhp_.param("frame_id", frame_id, std::string(""));
   nhp_.param("show_debug_prints", show_debug_prints_, false);
   nhp_.param("do_shift", do_shift_, false);
+  // Startup enabled
+  nhp_.param("start_enabled", start_enabled_, true);
+  ros::ServiceServer startService_ = nh_.advertiseService("start_imaging", &Controller::enableCallback, this);
+  ros::ServiceServer stopService_ = nh_.advertiseService("stop_imaging", &Controller::disableCallback, this);
+
 
   // Set camera info manager
   info_man_  = boost::shared_ptr<camera_info_manager::CameraInfoManager>(new camera_info_manager::CameraInfoManager(nhp_, frame_id, camera_info_url_));

@@ -76,7 +76,8 @@ class MonoCamera {
   ros::Publisher pub_temp_;
   ros::Publisher pub_params_;
 
-
+  ros::ServiceServer startService_;
+  ros::ServiceServer stopService_;
 
   // sensor_msgs::CameraInfo left_info_;
   boost::shared_ptr<camera_info_manager::CameraInfoManager> info_man_;
@@ -92,6 +93,7 @@ class MonoCamera {
   void frameCallback(const FramePtr& vimba_frame_ptr);
   void configure(Config& newconfig, uint32_t level);
   void updateCameraInfo(const Config& config);
+  bool startServiceCallback(std_srvs::SetThrusterCommand::Request &req, float_control::SetThrusterCommand::Response &res)
 };
 }
 #endif
