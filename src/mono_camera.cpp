@@ -72,6 +72,11 @@ MonoCamera::MonoCamera(ros::NodeHandle& nh, ros::NodeHandle& nhp) : nh_(nh), nhp
 
   // Start dynamic_reconfigure & run configure()
   reconfigure_server_.setCallback(boost::bind(&avt_vimba_camera::MonoCamera::configure, this, _1, _2));
+
+  if ( !imaging_enabled_ )
+  {
+	  cam_.stopImaging();
+  }
 }
 
 MonoCamera::~MonoCamera(void) {
@@ -196,12 +201,14 @@ void MonoCamera::updateCameraInfo(const avt_vimba_camera::AvtVimbaCameraConfig& 
 bool MonoCamera::enableCallback(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res)
 {
     imaging_enabled_ = true;
+    cam_.startImaging();
     res.success = true;
     res.message = "Imaging enabled";
 }
 bool MonoCamera::disableCallback(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res)
 {
     imaging_enabled_ = false;
+    cam_.stopImaging();
     res.success = true;
     res.message = "Imaging disabled";
 }
